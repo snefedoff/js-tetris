@@ -1,13 +1,11 @@
-import * as PIXI from 'pixi.js';
+import Game from "./Game";
 
-const app = new PIXI.Application({
-    width: 800,
-    height: 600,
-    backgroundColor: 0x1099bb,
-    resolution: 1,
+const game = new Game();
+
+game.init({
+    viewportWidth: 800,
+    viewportHeight: 600,
+    backgroundColor: 0x1099bb
 });
 
-app.ticker.add(() => {
-});
-
-document.body.appendChild(app.view);
+document.body.appendChild(game.getApp().view);
