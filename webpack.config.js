@@ -1,9 +1,6 @@
 const path = require('path');
-const webpack = require('webpack');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WebpackMd5Hash = require('webpack-md5-hash');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -17,6 +14,7 @@ module.exports = {
         compress: true,
         port: 9000
     },
+    devtool: 'source-map',
     module: {
         rules: [{
                 test: /\.js$/,
@@ -26,19 +24,6 @@ module.exports = {
                 }
             },
             {
-                test: /\.css$/,
-                use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            publicPath: "../",
-                        }
-                    },
-                    'css-loader',
-                    'postcss-loader',
-                ]
-            },
-            {
                 test: /\.(png|jpe?g|gif|ico|svg)$/i,
                 use: [
                   'file-loader?name=./images/[name].[ext]',
@@ -46,14 +31,10 @@ module.exports = {
                     loader: 'image-webpack-loader',
                     options: {
                       bypassOnDebug: true,
-                      disable: true
+                      disable: false
                     }
                   }
                 ]
-              },
-              {
-                test: /\.(eot|ttf|woff|woff2)$/,
-                loader: 'file-loader?name=./fonts/[name].[ext]'
               }
         ]
     },
@@ -64,17 +45,6 @@ module.exports = {
             filename: 'index.html',
             chunks: ['main']
         }),
-        new MiniCssExtractPlugin({
-            filename: './css/[name].[contenthash].css',
-        }),
-        new OptimizeCssAssetsPlugin({
-            assetNameRegExp: /\.css$/g,
-            cssProcessor: require('cssnano'),
-            cssProcessorPluginOptions: {
-                    preset: ['default'],
-            },
-            canPrint: true
-       }),
        new WebpackMd5Hash()
     ]
 }
