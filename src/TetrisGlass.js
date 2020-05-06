@@ -1,21 +1,22 @@
-import {Figure, Trino} from "./Figure";
+import {Figure, T} from "./Figure";
 import * as config from './config';
 import {GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH} from "./config";
 
 export default class TetrisGlass {
     constructor() {
         this._gameField = [GAME_FIELD_WIDTH * GAME_FIELD_HEIGHT];
+        this.currentFigure = null;
     }
 
     init() {
         this.clear();
-
-        this.addFigure( new Figure(Trino, 0,0));
+        this.currentFigure = new Figure(T[0], 0,0);
+        this.addFigure( this.currentFigure );
     }
 
     addFigure(figure) {
         figure.getBlocks().forEach(item => {
-            this._gameField[(figure.posX + item.x) + (figure.posY + item.y) * config.GAME_FIELD_HEIGHT] = 1;
+            this._gameField[item.x + item.y * config.GAME_FIELD_HEIGHT] = 1;
         });
     }
 
@@ -26,6 +27,7 @@ export default class TetrisGlass {
     }
 
     update() {
+        this.currentFigure.move(0, 1);
     }
 
     getGameField() {

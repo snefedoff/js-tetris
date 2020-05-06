@@ -20,31 +20,34 @@ export default class Game {
         this.tetris = new TetrisGlass();
         this.tetris.init();
 
+        this.blockSprites = [];
+        this.blockCount = 0;
+
         this.render();
+
+        this.application.ticker.add(throttle(this.update, 1000, this));
     }
 
     render() {
-        const blocks = this.tetris.getGameField();
-
-        for (let i = 0; i < config.GAME_FIELD_WIDTH; i++) {
-            for (let j = 0; j < config.GAME_FIELD_HEIGHT; j++) {
-                if (blocks[i+j*GAME_FIELD_HEIGHT]) {
-                    const block = new PIXI.Sprite(PIXI.Texture.WHITE);
-                    block.x = i * 32;
-                    block.y = j * 32;
-                    block.width = 32;
-                    block.height = 32;
-                    block.tint = '0x'+Math.floor(Math.random()*'0xffffff').toString(16);
-                    this.application.stage.addChild(block);
-                }
-            }
-        }
+        const blocks = this.tetris.currentFigure.getBlocks();
+        blocks.forEach( item => this.application.stage.addChild(item.sprite))
     }
 
     update() {
+        this.tetris.update();
     }
 
     getApp() {
         return this.application;
+    }
+
+    createBlockSprite(i, j) {
+        const block = new PIXI.Sprite(PIXI.Texture.WHITE);
+        block.x = i * config.GAME_FIELD_WIDTH;
+        block.y = j * config.GAME_FIELD_HEIGHT;
+        block.width = config.GAME_FIELD_WIDTH;
+        block.height = config.GAME_FIELD_HEIGHT;
+        block.tint = '0x' + Math.floor(Math.random() * '0xffffff').toString(16);
+        return block;
     }
 }
