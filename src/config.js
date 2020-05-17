@@ -1,4 +1,4 @@
-const GAME_FIELD_WIDTH = 12;
+const GAME_FIELD_WIDTH = 13;
 const GAME_FIELD_HEIGHT = 18;
 const BLOCK_SIZE = 32;
 

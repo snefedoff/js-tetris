@@ -1,4 +1,5 @@
-import {Figure, T} from "./Figure";
+import Figure from "./Figure";
+import * as Figures from './FigureMatricies';
 import * as config from './config';
 import {GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH} from "./config";
 
@@ -10,7 +11,7 @@ export default class TetrisGlass {
 
     init() {
         this.clear();
-        this.currentFigure = new Figure(T[0], 0,0);
+        this.currentFigure = new Figure(Figures.T[0], 5,-3);
         this.addFigure( this.currentFigure );
     }
 
@@ -27,6 +28,7 @@ export default class TetrisGlass {
     }
 
     update() {
+        if (this.currentFigure)
         this.currentFigure.move(0, 1);
     }
 
