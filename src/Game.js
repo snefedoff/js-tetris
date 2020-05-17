@@ -24,7 +24,19 @@ export default class Game {
     render() {
         const blocks = this.tetris.currentFigure.getBlocks();
         blocks.forEach( item => this.application.stage.addChild(item.sprite));
-        this.application.ticker.add(throttle(this.update, 700, this));
+        this.application.ticker.add(throttle(this.update, 500, this));
+
+        window.addEventListener('keyup',(e)=>{
+            if (e.key === "ArrowLeft") {
+                this.tetris.moveLeft();
+            }
+            if (e.key === "ArrowRight") {
+                this.tetris.moveRight();
+            }
+            if (e.key === "ArrowUp") {
+                this.tetris.rotate();
+            }
+        });
     }
 
     update() {
