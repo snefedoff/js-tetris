@@ -27,14 +27,16 @@ export default class Game {
         this.application.ticker.add(throttle(this.update, 500, this));
 
         window.addEventListener('keyup',(e)=>{
+            if (e.key === "ArrowUp") {
+                this.tetris.rotate();
+            }
+        });
+        window.addEventListener('keydown', (e) => {
             if (e.key === "ArrowLeft") {
                 this.tetris.moveLeft();
             }
             if (e.key === "ArrowRight") {
                 this.tetris.moveRight();
-            }
-            if (e.key === "ArrowUp") {
-                this.tetris.rotate();
             }
         });
     }
