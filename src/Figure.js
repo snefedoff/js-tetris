@@ -1,84 +1,41 @@
-import * as PIXI from "pixi.js";
-import * as config from './config';
-
-class Block {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        const {BLOCK_SIZE} = config;
-        this.sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
-        this.sprite.x = x * BLOCK_SIZE;
-        this.sprite.y = y * BLOCK_SIZE;
-        this.sprite.width = BLOCK_SIZE;
-        this.sprite.height = BLOCK_SIZE;
-    }
-
-    setPos(x, y) {
-        const {BLOCK_SIZE} = config;
-        this.x = x;
-        this.y = y;
-        this.sprite.x = x * BLOCK_SIZE;
-        this.sprite.y = y * BLOCK_SIZE;
-    }
-}
+import {convertArray1D} from "./ArrayUtils";
 
 export default class Figure {
     constructor(matricies, x, y) {
-        this._figureMatrixAll = [...matricies];
-        console.log(this._figureMatrixAll);
-        this.rotateId = 0;
-        this._figureCurrentMatrix = this._figureMatrixAll[this.rotateId].split('').map(item => +item);
-        this._blocks = [];
-
-        this._figurePosition = {x: x, y: y};
-
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++) {
-                if (this._figureCurrentMatrix[i + j * 4]) {
-                    this._blocks.push(new Block(i + x, j + y));
-                }
-            }
-        }
+        this._figure = matricies.map(
+            item => convertArray1D( item.split('').map(item => +item ? 2 : 0), 4)
+        );
+        this._rotation = 0;
+        this._posX = x;
+        this._posY = y;
     }
 
     rotate() {
-        this.rotateId = (this.rotateId + 1) % 4;
-        this.rebuildBlocks();
+        this._rotation = (this._rotation + 1) % 4;
     }
 
-    rebuildBlocks() {
-        this._figureCurrentMatrix = this._figureMatrixAll[this.rotateId].split('').map(item => +item);
-        let blockNum = 0;
-        const maxBlocks = this._blocks.length;
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++) {
-                if (this._figureCurrentMatrix[i + j * 4]) {
-                    this._blocks[blockNum].setPos(i + this._figurePosition.x, j + this._figurePosition.y);
-                    blockNum += 1;
-                    if (blockNum > maxBlocks) return;
-                }
-            }
-        }
+    getCurrentState() {
+        return this._figure[this._rotation];
     }
 
-    getBlocks() {
-        return this._blocks;
+    getPosX() {
+        return this._posX;
     }
 
-    getMatrix() {
-        return this._figureCurrentMatrix;
+    getPosY() {
+        return this._posY;
     }
 
-    getPosition() {
-        return this._figurePosition;
+    getRotationId() {
+        return this._rotation;
     }
 
-    move(dirX, dirY) {
-        this._figurePosition.x += dirX;
-        this._figurePosition.y += dirY;
-        for (let i = 0; i < this._blocks.length; i++) {
-            const item = this._blocks[i];
-            item.setPos(dirX + item.x, dirY + item.y);
-        }
+    getRotationArray(id) {
+        return this._figure[id];
+    }
+
+    step(x, y) {
+        this._posX += x;
+        this._posY += y;
     }
 }
