@@ -106,7 +106,6 @@ export default class Tetris extends Container {
             if (this._figure) {
                 if (this._testCurrentFigurePos(0, 1, 0)) {
                     this.updateFigurePosition(0, 1);
-                    console.log(this._gameField.getArray2d());
                 } else {
                     this.dropFigure();
                     this.spawnFigure();
