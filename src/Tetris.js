@@ -1,26 +1,39 @@
 import Figure from "./Figure";
-import * as Figures from './FigureMatricies';
-import {GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH, SPAWN_POINT_X, SPAWN_POINT_Y} from "./config";
+import { FigureMap } from './FigureMatricies';
+import { BLOCK_SIZE, GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH, SPAWN_POINT_X, SPAWN_POINT_Y } from "./config";
 import Array2D from "./Array2D";
+import * as PIXI from "pixi.js";
 
-const FigureMap = {
-    0: Figures.L,
-    1: Figures.T,
-    2: Figures.I,
-    3: Figures.J,
-    4: Figures.O,
-    5: Figures.S,
-    6: Figures.Z,
-};
-
-export default class Tetris {
+export default class Tetris extends PIXI.Container {
     constructor() {
+        super();
         this._gameField = new Array2D(GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH);
         this._figure = null;
         this._stepTimer = 0;
         this._gameSpeed = 400;
 
         this.spawnFigure();
+    }
+
+    addSpriteBlock(row, col, texture) {
+        const spriteBlock = new PIXI.Sprite( texture ? texture : PIXI.Texture.WHITE );
+        spriteBlock.width = BLOCK_SIZE;
+        spriteBlock.height = BLOCK_SIZE;
+        spriteBlock.x = col * BLOCK_SIZE;
+        spriteBlock.y = row * BLOCK_SIZE;
+        spriteBlock.name = `${row}-${col}`;
+        this.addChild(spriteBlock);
+    }
+
+    removeSpriteBlock(row, col) {
+        this.removeChild(this.getChildByName(`${row}-${col}`));
+    }
+
+    updateSpriteBlock(row, col, newRow, newCol){
+        const block = this.getChildByName(`${row}-${col}`);
+        block.y = newRow * BLOCK_SIZE;
+        block.x = newCol * BLOCK_SIZE;
+        block.name = `${newRow}-${newCol}`;
     }
 
     _clearCurrentFigurePos() {
@@ -45,11 +58,14 @@ export default class Tetris {
 
     spawnFigure() {
         this.addFigure(this._selectRandomFigure(), SPAWN_POINT_X, SPAWN_POINT_Y);
+        const indexes = this._figure.getCurrentState().getNonZeroIndexes();
+        indexes.forEach( item => this.addSpriteBlock(item.row+this._figure.getPosY(), item.col+this._figure.getPosX()) );
     }
 
     dropFigure() {
         delete this._figure;
         this._gameField.normalize();
+        this.checkFullRow();
     }
 
     addFigure(figure, x, y) {
@@ -57,8 +73,40 @@ export default class Tetris {
         this._mergeCurrentFigurePos();
     }
 
-    updateFigurePosition(x, y) {
+    checkFullRow() {
+        let blockCount = 0;
+        for (let i = 0; i < this._gameField.getRows(); i++) {
+            blockCount = 0;
+            for (let j = 0; j < this._gameField.getColumns(); j++) {
+                if (this._gameField.get(i,j) !== 0) blockCount++;
+            }
+            if (blockCount === GAME_FIELD_WIDTH) {
+
+                this._gameField.dropRow(i);
+                for (let k = 0; k < this._gameField.getColumns(); k++) {
+                    this.removeSpriteBlock(i, k);
+                }
+                console.log(this._gameField.getArray2d());
+            }
+        }
+    }
+
+    updateFigurePosition(x, y, rot) {
         this._clearCurrentFigurePos();
+        if (rot) {
+            const indexes = this._figure.getCurrentState().getNonZeroIndexes();
+            indexes.forEach( item => this.addSpriteBlock(item.row+this._figure.getPosY(), item.col+this._figure.getPosX()) );
+        }
+        else {
+            this._figure.getCurrentState().getNonZeroIndexes()
+                .forEach(item => this.updateSpriteBlock(
+                    item.row + this._figure.getPosY(),
+                    item.col + this._figure.getPosX(),
+                    item.row + this._figure.getPosY() + y,
+                    item.col + this._figure.getPosX() + x
+                    )
+                );
+        }
         this._figure.step(x, y);
         this._mergeCurrentFigurePos();
     }
@@ -74,8 +122,7 @@ export default class Tetris {
                 }
             }
             this._stepTimer = this._gameSpeed;
-        }
-        else {
+        } else {
             this._stepTimer -= 1.0 * dt;
         }
     }
@@ -103,8 +150,14 @@ export default class Tetris {
     rotate() {
         if (this._figure && this._testCurrentFigurePos(0, 0, 1)) {
             this._clearCurrentFigurePos();
+            this._figure.getCurrentState().getNonZeroIndexes().forEach(
+                item => this.removeSpriteBlock(
+                item.row+this._figure.getPosY(),
+                item.col+this._figure.getPosX(),
+                )
+            );
             this._figure.rotate();
-            this.updateFigurePosition(0, 0);
+            this.updateFigurePosition(0, 0, 1);
         }
     }
 }

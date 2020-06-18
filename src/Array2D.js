@@ -98,4 +98,25 @@ export default class Array2D {
             }
         }
     }
+
+    dropRow( row ) {
+        this._array2d.splice(row, 1);
+        const newRow = new Array(this.columns);
+        for (let j = 0; j < this.columns; j++) {
+            newRow[j] = 0;
+        }
+        this._array2d.unshift(newRow);
+    }
+
+    getNonZeroIndexes() {
+        const indexes = [];
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.columns; j++) {
+                if (this._array2d[i][j] !== 0) {
+                    indexes.push({row:i,col:j});
+                }
+            }
+        }
+        return indexes;
+    }
 }
