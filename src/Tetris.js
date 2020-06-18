@@ -2,9 +2,9 @@ import Figure from "./Figure";
 import { FigureMap } from './FigureMatricies';
 import { BLOCK_SIZE, GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH, SPAWN_POINT_X, SPAWN_POINT_Y } from "./config";
 import Array2D from "./Array2D";
-import * as PIXI from "pixi.js";
+import {Container, Sprite, Texture} from "pixi.js";
 
-export default class Tetris extends PIXI.Container {
+export default class Tetris extends Container {
     constructor() {
         super();
         this._gameField = new Array2D(GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH);
@@ -13,27 +13,38 @@ export default class Tetris extends PIXI.Container {
         this._gameSpeed = 400;
 
         this.spawnFigure();
+        this._createSpriteGrid();
     }
 
-    addSpriteBlock(row, col, texture) {
-        const spriteBlock = new PIXI.Sprite( texture ? texture : PIXI.Texture.WHITE );
-        spriteBlock.width = BLOCK_SIZE;
-        spriteBlock.height = BLOCK_SIZE;
-        spriteBlock.x = col * BLOCK_SIZE;
-        spriteBlock.y = row * BLOCK_SIZE;
-        spriteBlock.name = `${row}-${col}`;
-        this.addChild(spriteBlock);
+    _createSpriteGrid() {
+        for (let i = 0; i < GAME_FIELD_HEIGHT; i++) {
+            for (let j = 0; j < GAME_FIELD_WIDTH; j++) {
+                const sprite = new Sprite(Texture.WHITE);
+                sprite.x = j*BLOCK_SIZE;
+                sprite.y = i*BLOCK_SIZE;
+                sprite.width = BLOCK_SIZE;
+                sprite.height = BLOCK_SIZE;
+                sprite.tint = 0xFFFFFF;
+                sprite.name = `${i}-${j}`;
+                sprite.visible = false;
+                this.addChild(sprite);
+            }
+        }
     }
 
-    removeSpriteBlock(row, col) {
-        this.removeChild(this.getChildByName(`${row}-${col}`));
-    }
+    _renderSpriteGrid() {
+        for (let i = 0; i < GAME_FIELD_HEIGHT; i++) {
+            for (let j = 0; j < GAME_FIELD_WIDTH; j++) {
+                const block = this._gameField.get(i,j);
+                const blockSprite = this.getChildByName(`${i}-${j}`);
+                blockSprite.visible = false;
+                if (block) {
+                    blockSprite.visible = true;
+                    blockSprite.tint = block.color;
+                }
 
-    updateSpriteBlock(row, col, newRow, newCol){
-        const block = this.getChildByName(`${row}-${col}`);
-        block.y = newRow * BLOCK_SIZE;
-        block.x = newCol * BLOCK_SIZE;
-        block.name = `${newRow}-${newCol}`;
+            }
+        }
     }
 
     _clearCurrentFigurePos() {
@@ -58,8 +69,6 @@ export default class Tetris extends PIXI.Container {
 
     spawnFigure() {
         this.addFigure(this._selectRandomFigure(), SPAWN_POINT_X, SPAWN_POINT_Y);
-        const indexes = this._figure.getCurrentState().getNonZeroIndexes();
-        indexes.forEach( item => this.addSpriteBlock(item.row+this._figure.getPosY(), item.col+this._figure.getPosX()) );
     }
 
     dropFigure() {
@@ -81,32 +90,13 @@ export default class Tetris extends PIXI.Container {
                 if (this._gameField.get(i,j) !== 0) blockCount++;
             }
             if (blockCount === GAME_FIELD_WIDTH) {
-
                 this._gameField.dropRow(i);
-                for (let k = 0; k < this._gameField.getColumns(); k++) {
-                    this.removeSpriteBlock(i, k);
-                }
-                console.log(this._gameField.getArray2d());
             }
         }
     }
 
-    updateFigurePosition(x, y, rot) {
+    updateFigurePosition(x, y) {
         this._clearCurrentFigurePos();
-        if (rot) {
-            const indexes = this._figure.getCurrentState().getNonZeroIndexes();
-            indexes.forEach( item => this.addSpriteBlock(item.row+this._figure.getPosY(), item.col+this._figure.getPosX()) );
-        }
-        else {
-            this._figure.getCurrentState().getNonZeroIndexes()
-                .forEach(item => this.updateSpriteBlock(
-                    item.row + this._figure.getPosY(),
-                    item.col + this._figure.getPosX(),
-                    item.row + this._figure.getPosY() + y,
-                    item.col + this._figure.getPosX() + x
-                    )
-                );
-        }
         this._figure.step(x, y);
         this._mergeCurrentFigurePos();
     }
@@ -116,6 +106,7 @@ export default class Tetris extends PIXI.Container {
             if (this._figure) {
                 if (this._testCurrentFigurePos(0, 1, 0)) {
                     this.updateFigurePosition(0, 1);
+                    console.log(this._gameField.getArray2d());
                 } else {
                     this.dropFigure();
                     this.spawnFigure();
@@ -125,6 +116,7 @@ export default class Tetris extends PIXI.Container {
         } else {
             this._stepTimer -= 1.0 * dt;
         }
+        this._renderSpriteGrid();
     }
 
     moveLeft() {
@@ -150,12 +142,6 @@ export default class Tetris extends PIXI.Container {
     rotate() {
         if (this._figure && this._testCurrentFigurePos(0, 0, 1)) {
             this._clearCurrentFigurePos();
-            this._figure.getCurrentState().getNonZeroIndexes().forEach(
-                item => this.removeSpriteBlock(
-                item.row+this._figure.getPosY(),
-                item.col+this._figure.getPosX(),
-                )
-            );
             this._figure.rotate();
             this.updateFigurePosition(0, 0, 1);
         }

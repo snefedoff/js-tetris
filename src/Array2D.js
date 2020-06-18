@@ -42,7 +42,9 @@ export default class Array2D {
                 const r = row + i;
                 const c = col + j;
                 if (!this.isOutOfBounds(r, c)) {
-                    if (other.get(i,j)>0) {
+                    const block = other.get(i,j);
+                    if (block && block.state > 0) {
+
                         this.set(r,c, 0);
                     }
                 }
@@ -82,21 +84,15 @@ export default class Array2D {
                 const r = row + i;
                 const c = col + j;
                 if (!this.isOutOfBounds(r, c)) {
-                    if (this.get(r,c) === 1 && other.get(i,j) > 0) {
+                    const thisBlock = this.get(r,c);
+                    const otherBlock = other.get(i,j);
+                    if (thisBlock && thisBlock.state === 1 && otherBlock && otherBlock.state > 0) {
                         valuesOverwritten++;
                     }
-                } else if (other.get(i, j) > 0) valuesOverwritten++;
+                } else if (other.get(i, j).state > 0) valuesOverwritten++;
             }
         }
         return valuesOverwritten === 0;
-    }
-
-    normalize() {
-        for (let i = 0; i < this.rows; i++) {
-            for (let j = 0; j < this.columns; j++) {
-                if (this._array2d[i][j] > 1) this._array2d[i][j] = 1;
-            }
-        }
     }
 
     dropRow( row ) {
@@ -108,15 +104,12 @@ export default class Array2D {
         this._array2d.unshift(newRow);
     }
 
-    getNonZeroIndexes() {
-        const indexes = [];
+    normalize() {
         for (let i = 0; i < this.rows; i++) {
             for (let j = 0; j < this.columns; j++) {
-                if (this._array2d[i][j] !== 0) {
-                    indexes.push({row:i,col:j});
-                }
+                const block = this._array2d[i][j];
+                if (block && block.state === 2) block.state = 1;
             }
         }
-        return indexes;
     }
 }
