@@ -1,16 +1,29 @@
 import Figure from "./Figure";
-import { FigureMap } from './FigureMatricies';
-import { BLOCK_SIZE, GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH, SPAWN_POINT_X, SPAWN_POINT_Y } from "./config";
+import {FigureMap} from './FigureMatricies';
+import {
+    BLOCK_SIZE,
+    GAME_FIELD_HEIGHT,
+    GAME_FIELD_WIDTH,
+    SPAWN_POINT_X,
+    SPAWN_POINT_Y
+} from "./config";
 import Array2D from "./Array2D";
-import {Container, Sprite, Texture} from "pixi.js";
+import {
+    Sprite,
+    Texture
+} from "pixi.js";
+import State from "./State";
 
-export default class Tetris extends Container {
-    constructor() {
-        super();
+// TODO render score, next figure render, all states graphics design
+
+export default class Tetris extends State{
+    constructor(context) {
+        super(context);
         this._gameField = new Array2D(GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH);
         this._figure = null;
         this._stepTimer = 0;
         this._gameSpeed = 400;
+        this._score = 0;
 
         this.spawnFigure();
         this._createSpriteGrid();
@@ -20,8 +33,8 @@ export default class Tetris extends Container {
         for (let i = 0; i < GAME_FIELD_HEIGHT; i++) {
             for (let j = 0; j < GAME_FIELD_WIDTH; j++) {
                 const sprite = new Sprite(Texture.WHITE);
-                sprite.x = j*BLOCK_SIZE;
-                sprite.y = i*BLOCK_SIZE;
+                sprite.x = j * BLOCK_SIZE;
+                sprite.y = i * BLOCK_SIZE;
                 sprite.width = BLOCK_SIZE;
                 sprite.height = BLOCK_SIZE;
                 sprite.tint = 0xFFFFFF;
@@ -35,7 +48,7 @@ export default class Tetris extends Container {
     _renderSpriteGrid() {
         for (let i = 0; i < GAME_FIELD_HEIGHT; i++) {
             for (let j = 0; j < GAME_FIELD_WIDTH; j++) {
-                const block = this._gameField.get(i,j);
+                const block = this._gameField.get(i, j);
                 const blockSprite = this.getChildByName(`${i}-${j}`);
                 blockSprite.visible = false;
                 if (block) {
@@ -72,6 +85,10 @@ export default class Tetris extends Container {
     }
 
     dropFigure() {
+        if (this._figure.getPosY() < 1) {
+            this.context.changeState('menu');
+            return;
+        }
         delete this._figure;
         this._gameField.normalize();
         this.checkFullRow();
@@ -84,15 +101,20 @@ export default class Tetris extends Container {
 
     checkFullRow() {
         let blockCount = 0;
+        let comboCount = 0
         for (let i = 0; i < this._gameField.getRows(); i++) {
             blockCount = 0;
             for (let j = 0; j < this._gameField.getColumns(); j++) {
-                if (this._gameField.get(i,j) !== 0) blockCount++;
+                if (this._gameField.get(i, j) !== 0) blockCount++;
             }
             if (blockCount === GAME_FIELD_WIDTH) {
                 this._gameField.dropRow(i);
+                this._score += 100;
+                comboCount++;
             }
         }
+        if (comboCount >= 4) this._score = this._score * 4;
+        if (comboCount >= 2) this._score = this._score * 2;
     }
 
     updateFigurePosition(x, y) {
@@ -118,7 +140,7 @@ export default class Tetris extends Container {
         this._renderSpriteGrid();
     }
 
-    moveLeft() {
+    onKeyLeft() {
         if (this._figure) {
             if (this._gameField.test(this._figure.getPosY(), this._figure.getPosX() - 1, this._figure.getCurrentState())) {
                 this.updateFigurePosition(-1, 0);
@@ -126,7 +148,7 @@ export default class Tetris extends Container {
         }
     }
 
-    moveRight() {
+    onKeyRight() {
         if (this._figure) {
             if (this._gameField.test(this._figure.getPosY(), this._figure.getPosX() + 1, this._figure.getCurrentState())) {
                 this.updateFigurePosition(1, 0);
@@ -134,15 +156,17 @@ export default class Tetris extends Container {
         }
     }
 
-    moveDown() {
+    onKeyDown() {
         this._stepTimer = 0;
     }
 
-    rotate() {
+    onKeyUp() {
         if (this._figure && this._testCurrentFigurePos(0, 0, 1)) {
             this._clearCurrentFigurePos();
             this._figure.rotate();
             this.updateFigurePosition(0, 0, 1);
         }
     }
+
+    onEnter(){}
 }

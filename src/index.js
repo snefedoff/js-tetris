@@ -1,11 +1,12 @@
-import Game from "./Game";
+import {Application} from "pixi.js";
+import Context from "./Context";
 
-const game = new Game();
-
-game.init({
-    viewportWidth: 716,
-    viewportHeight: 600,
-    backgroundColor: 0x1099bb
+const application = new Application({
+    width: 566,
+    height: 576,
+    backgroundColor: 0x1099bb,
+    resolution: 1,
 });
-
-document.body.appendChild(game.getApp().view);
+const applicationContext = new Context( application, 'menu' );
+application.ticker.add(applicationContext.update.bind(applicationContext));
+document.body.appendChild(application.view);

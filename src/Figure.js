@@ -3,7 +3,7 @@ import {convertArray1D} from "./ArrayUtils";
 export default class Figure {
     constructor(matricies, x, y, color) {
         this._figure = matricies.map(
-            item => convertArray1D( item.split('').map(item => +item ? {state: 2, color: color || '0xffffff'} : 0), 4)
+            item => convertArray1D( item.split('').map(item => +item ? {state: 2, color: color || '0x00ff00'} : 0), 4)
         );
         this._rotation = 0;
         this._posX = x;

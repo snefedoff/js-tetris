@@ -61,7 +61,7 @@ export default class Array2D {
     }
 
     isOutOfBounds(r, c) {
-        return r < 0 || r > this.rows - 1 || c < 0 || c > this.columns - 1;
+        return r < -2 || r > this.rows - 1 || c < 0 || c > this.columns - 1;
     }
 
     merge(row, col, other) {
@@ -70,7 +70,7 @@ export default class Array2D {
                 const r = row + i;
                 const c = col + j;
                 const value = other.get(i, j);
-                if (!this.isOutOfBounds(r, c) && value) {
+                if (!this.isOutOfBounds(r, c) && value && r >= 0) {
                     this._array2d[r][c] = value;
                 }
             }
