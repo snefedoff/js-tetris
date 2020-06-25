@@ -5,7 +5,8 @@ const application = new Application({
     width: 566,
     height: 576,
     backgroundColor: 0x1099bb,
-    resolution: 1,
+    resolution: 2,
+    autoDensity: true
 });
 const applicationContext = new Context( application, 'menu' );
 application.ticker.add(applicationContext.update.bind(applicationContext));

@@ -16,4 +16,8 @@ export default class Menu extends State {
     onEnter(){
         this.context.changeState('game');
     }
+    onKeyLeft() {}
+    onKeyRight() {}
+    onKeyDown() {}
+    onKeyUp() {}
 }

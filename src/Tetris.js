@@ -10,23 +10,30 @@ import {
 import Array2D from "./Array2D";
 import {
     Sprite,
-    Texture
+    Texture,
+    Container, Text
 } from "pixi.js";
 import State from "./State";
 
-// TODO render score, next figure render, all states graphics design
+// TODO all states graphics design
 
 export default class Tetris extends State{
     constructor(context) {
         super(context);
         this._gameField = new Array2D(GAME_FIELD_HEIGHT, GAME_FIELD_WIDTH);
         this._figure = null;
+        this._nextFigure = null;
         this._stepTimer = 0;
         this._gameSpeed = 400;
         this._score = 0;
+        this._scoreText = new Text('0',{ font: 'bold 60px Arial', fill: '#3e1707', align: 'center', stroke: '#fff', strokeThickness: 2 });
+        this._scoreText.x = 450;
+        this._scoreText.y = 150;
+        this.addChild(this._scoreText);
 
         this.spawnFigure();
         this._createSpriteGrid();
+        this._createNextFigurePreview();
     }
 
     _createSpriteGrid() {
@@ -55,7 +62,44 @@ export default class Tetris extends State{
                     blockSprite.visible = true;
                     blockSprite.tint = block.color;
                 }
+            }
+        }
+    }
 
+    _createNextFigurePreview() {
+        const nextFigure = new Container();
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                const sprite = new Sprite(Texture.WHITE);
+                sprite.x = j * BLOCK_SIZE;
+                sprite.y = i * BLOCK_SIZE;
+                sprite.width = BLOCK_SIZE;
+                sprite.height = BLOCK_SIZE;
+                sprite.tint = 0xFFFFFF;
+                sprite.name = `next-figure-${i}-${j}`;
+                sprite.visible = false;
+                nextFigure.addChild(sprite);
+            }
+        }
+        nextFigure.x = 430;
+        nextFigure.y = 10;
+        nextFigure.name = 'next-figure';
+        this.addChild(nextFigure);
+    }
+
+    _renderNextFigurePreview() {
+        if (this._nextFigure) {
+            const figure = this._nextFigure.getRotationArray(0);
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const block = figure.get(i, j);
+                    const blockSprite = this.getChildByName('next-figure').getChildByName(`next-figure-${i}-${j}`);
+                    blockSprite.visible = false;
+                    if (block) {
+                        blockSprite.visible = true;
+                        blockSprite.tint = block.color;
+                    }
+                }
             }
         }
     }
@@ -81,12 +125,31 @@ export default class Tetris extends State{
     }
 
     spawnFigure() {
-        this.addFigure(this._selectRandomFigure(), SPAWN_POINT_X, SPAWN_POINT_Y);
+        if (!this._nextFigure) {
+            this._nextFigure = new Figure(this._selectRandomFigure(), SPAWN_POINT_X, SPAWN_POINT_Y);
+            this.addNextFigure();
+            this._nextFigure = new Figure(this._selectRandomFigure(), SPAWN_POINT_X, SPAWN_POINT_Y);
+        }
+        else {
+            this.addNextFigure();
+            this._nextFigure = new Figure(this._selectRandomFigure(), SPAWN_POINT_X, SPAWN_POINT_Y);
+        }
+    }
+
+    isGameOver() {
+        return this._figure.getPosY() < 1;
+    }
+
+    resetState() {
+        this._score = 0;
+        this._scoreText.text = '0';
+        this._gameField.clear();
+        this.context.changeState('menu');
     }
 
     dropFigure() {
-        if (this._figure.getPosY() < 1) {
-            this.context.changeState('menu');
+        if (this.isGameOver()) {
+            this.resetState();
             return;
         }
         delete this._figure;
@@ -94,8 +157,8 @@ export default class Tetris extends State{
         this.checkFullRow();
     }
 
-    addFigure(figure, x, y) {
-        this._figure = new Figure(figure, x, y);
+    addNextFigure() {
+        this._figure = this._nextFigure;
         this._mergeCurrentFigurePos();
     }
 
@@ -115,6 +178,7 @@ export default class Tetris extends State{
         }
         if (comboCount >= 4) this._score = this._score * 4;
         if (comboCount >= 2) this._score = this._score * 2;
+        this._scoreText.text = this._score;
     }
 
     updateFigurePosition(x, y) {
@@ -138,6 +202,7 @@ export default class Tetris extends State{
             this._stepTimer -= 1.0 * dt;
         }
         this._renderSpriteGrid();
+        this._renderNextFigurePreview();
     }
 
     onKeyLeft() {
