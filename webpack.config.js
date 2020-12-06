@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WebpackMd5Hash = require('webpack-md5-hash');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -9,7 +10,9 @@ module.exports = {
     output: {
         path: path.resolve(__dirname,'dist'),
         filename: './js/[name].[chunkhash].js',
+        sourceMapFilename: "[name].js.map"
     },
+    devtool: 'source-map',
     devServer: {
         compress: true,
         port: 9000
