@@ -1,13 +1,13 @@
-import * as PIXI from 'pixi.js';
+import {Application} from "pixi.js";
+import Context from "./Context";
 
-const app = new PIXI.Application({
-    width: 800,
-    height: 600,
+const application = new Application({
+    width: 566,
+    height: 576,
     backgroundColor: 0x1099bb,
-    resolution: 1,
+    resolution: 2,
+    autoDensity: true
 });
-
-app.ticker.add(() => {
-});
-
-document.body.appendChild(app.view);
+const applicationContext = new Context( application, 'menu' );
+application.ticker.add(applicationContext.update.bind(applicationContext));
+document.body.appendChild(application.view);
